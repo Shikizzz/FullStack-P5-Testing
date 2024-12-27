@@ -11,15 +11,39 @@ import { expect } from '@jest/globals';
 import { SessionService } from 'src/app/services/session.service';
 
 import { LoginComponent } from './login.component';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
+  let router: Router;
+
+  const mockSessionService = {
+    logIn: jest.fn()
+  }
+
+  const mockSessionInformation: SessionInformation = {
+    token: 'token',
+    type: 'jwt',
+    id: 1,
+    username: 'JohnDoe',
+    firstName: 'John',
+    lastName: 'Doe',
+    admin: false
+  }
+  const mockAuthService = {
+    login: jest.fn()
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [LoginComponent],
-      providers: [SessionService],
+      providers: [
+        { provide: SessionService, useValue: mockSessionService },
+        { provide: AuthService, useValue: mockAuthService }],
       imports: [
         RouterTestingModule,
         BrowserAnimationsModule,
@@ -31,6 +55,7 @@ describe('LoginComponent', () => {
         ReactiveFormsModule]
     })
       .compileComponents();
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -39,4 +64,40 @@ describe('LoginComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it("should login when valid informations are submitted", () => {
+    let loginRequest = { email: 'test@test.com', password: 'password' };
+    component.form.setValue(loginRequest);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockImplementation(jest.fn());
+    mockAuthService.login.mockReturnValue(of(mockSessionInformation));// = jest.fn(() => of(mockSessionInformation)); // returns an observable of SessionInformation
+
+    component.submit();
+
+    expect(mockAuthService.login).toHaveBeenCalledWith(loginRequest);
+    expect(mockSessionService.logIn).toHaveBeenCalledWith(mockSessionInformation);
+    expect(navigateSpy).toHaveBeenCalledWith(['/sessions']);
+    expect(component.onError).toBe(false);
+    mockSessionService.logIn.mockClear();
+    mockAuthService.login.mockRestore();
+    navigateSpy.mockClear();
+  });
+
+  it("should throw error if unvalid informations are submitted", () => {
+    let loginRequest = { email: 'test@test.com', password: 'password' };
+    mockAuthService.login.mockReturnValue(throwError(() => new Error));// = jest.fn(() => throwError(() => new Error));   //WHY NOT INDEPENDANT WITH OTHER TEST ?
+    const navigateSpy = jest.spyOn(router, 'navigate')
+    component.form.setValue(loginRequest);
+
+    component.submit();
+
+    expect(mockAuthService.login).toHaveBeenCalledWith(loginRequest);
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(mockSessionService.logIn).not.toHaveBeenCalled();
+    expect(component.onError).toBe(true);
+
+    mockSessionService.logIn.mockClear();
+    mockAuthService.login.mockRestore();
+    navigateSpy.mockClear();
+  });
+
 });
