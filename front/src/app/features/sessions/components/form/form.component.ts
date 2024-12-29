@@ -27,8 +27,7 @@ export class FormComponent implements OnInit {
     private sessionService: SessionService,
     private teacherService: TeacherService,
     private router: Router
-  ) {
-  }
+  ) { }
 
   public ngOnInit(): void {
     if (!this.sessionService.sessionInformation!.admin) {

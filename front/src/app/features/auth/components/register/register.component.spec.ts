@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -65,7 +65,7 @@ describe('RegisterComponent', () => {
     mockAuthService.register.mockClear();
   });
 
-  it("should register when valid informations are submitted", () => {
+  it("should not register when back return error", () => {
     let registerRequest = { email: 'test@test.com', firstName: "John", lastName: "Doe", password: 'password' };
     component.form.setValue(registerRequest);
     const navigateSpy = jest.spyOn(router, 'navigate').mockImplementation(jest.fn());
@@ -77,6 +77,63 @@ describe('RegisterComponent', () => {
     expect(navigateSpy).not.toHaveBeenCalled();
     expect(component.onError).toBe(true);
     mockAuthService.register.mockClear();
+  });
+});
+
+/*--------------- INTEGRATION TESTS ------------------*/
+
+describe('RegisterComponentIntegration', () => {
+  let component: RegisterComponent;
+  let fixture: ComponentFixture<RegisterComponent>;
+
+  let registerRequest = { email: 'test@test.com', firstName: "John", lastName: "Doe", password: 'password' };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [RegisterComponent],
+      imports: [
+        BrowserAnimationsModule,
+        HttpClientModule,
+        ReactiveFormsModule,
+        MatCardModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule
+      ]
+    })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(RegisterComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('register if request is valid', () => {
+    component.form.setValue(registerRequest);
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of({})); //mocking call to back
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation();
+
+    component.submit();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/auth/register", registerRequest);
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(component.onError).toBe(false);
+    httpSpy.mockRestore();
+    navigateSpy.mockRestore();
+  });
+
+  it('give an error if Backend returns error', () => {
+    component.form.setValue(registerRequest);
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockImplementation(jest.fn(() => throwError(() => new Error)));
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation();
+
+    component.submit();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/auth/register", registerRequest);
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(component.onError).toBe(true);
+    httpSpy.mockRestore();
+    navigateSpy.mockClear();
   });
 
 });

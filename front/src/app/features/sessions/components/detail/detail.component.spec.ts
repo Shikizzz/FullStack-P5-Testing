@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -11,7 +11,10 @@ import { of } from 'rxjs';
 import { Router } from '@angular/router';
 import { SessionApiService } from '../../services/session-api.service';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCard, MatCardModule, MatCardTitle } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
+import { Session } from '../../interfaces/session.interface';
+import { Teacher } from 'src/app/interfaces/teacher.interface';
 
 
 describe('DetailComponent', () => {
@@ -105,6 +108,134 @@ describe('DetailComponent', () => {
     component.participate();
     expect(mockSessionApiService.participate).toHaveBeenCalled();
   });
+});
 
+/*--------------- INTEGRATION TESTS ------------------*/
+
+describe('DetailComponentIntegration', () => {
+  let component: DetailComponent;
+  let sessionService: SessionService;
+  let fixture: ComponentFixture<DetailComponent>;
+
+  let sessionInformation = {
+    admin: true,
+    id: 1
+  } as SessionInformation;
+
+  let session = {
+    id: 1,
+    name: "YogaSession",
+    description: "description",
+    date: new Date,
+    teacher_id: 1,
+    users: [],
+    createdAt: new Date,
+    updatedAt: new Date
+  } as Session;
+
+  const teacher = {
+    id: 1,
+    lastName: "Doe",
+    firstName: "John",
+    createdAt: new Date,
+    updatedAt: new Date,
+  } as Teacher
+
+  beforeEach(async () => {
+
+    session.users = [];
+
+    await TestBed.configureTestingModule({
+      declarations: [DetailComponent],
+      imports: [
+        RouterTestingModule,
+        HttpClientModule,
+        MatSnackBarModule,
+        ReactiveFormsModule
+      ],
+      providers: [{ provide: SessionService }]
+    })
+      .compileComponents();
+    sessionService = TestBed.inject(SessionService);
+    sessionService.sessionInformation = sessionInformation;
+    fixture = TestBed.createComponent(DetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+  /*
+    it('should fetch session on init', () => {
+      //sessionService.isLogged = true; //not the problem ?
+      component.sessionId = "1";
+      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'get')
+        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
+        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
+  
+      component.ngOnInit();
+  
+      expect(httpSpy).toHaveBeenCalled();//With("api/session/1");
+      expect(component.session).toBe(session);
+      expect(component.isParticipate).toBe(false);
+      expect(httpSpy).toHaveBeenCalledWith("api/teacher/1");
+      expect(component.teacher).toBe(teacher);
+      httpSpy.mockClear();
+    });*/
+
+  it('should delete the session when delete() function called', () => {
+    component.sessionId = "1";
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'delete').mockReturnValue(of({})); //mocking sessionApiService.delete call to back
+    const matSnackBarSpy = jest.spyOn(MatSnackBar.prototype as any, 'open').mockImplementation(jest.fn());
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation(jest.fn());
+
+    component.delete();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/session/1");
+    expect(matSnackBarSpy).toHaveBeenCalledWith('Session deleted !', 'Close', { duration: 3000 });
+    expect(navigateSpy).toHaveBeenCalledWith(['sessions']);
+    httpSpy.mockClear();
+    matSnackBarSpy.mockClear();
+    navigateSpy.mockClear();
+  });
+  /*
+    it('should add the user in the session when participate() function called', () => {
+      component.sessionId = "1";
+      component.userId = "42"
+      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of({})); //mocking sessionApiService.participate call to back
+      session.users.push(42); //user have been added to the session's users
+      const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
+        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
+        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
+  
+      component.participate();
+  
+      expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42", null);
+      // fetchSession is called Successfully here
+      expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
+      expect(component.isParticipate).toBe(true);
+      expect(component.teacher).toBe(teacher);
+      httpSpy.mockClear();
+      httpFetchSpy.mockClear();
+    });*/
+  /*
+    it('should add the user in the session when participate() function called', () => {
+      component.sessionId = "1";
+      component.userId = "42"
+      component.session?.users.push(42);
+      session.users.push(42);
+      component.isParticipate = true;
+      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'delete').mockReturnValue(of({})); //mocking sessionApiService.unParticipate call to back
+      session.users.pop(); //user have been removed to the session's users
+      const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
+        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
+        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
+  
+      component.unParticipate();
+  
+      expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42");
+      expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
+      expect(component.isParticipate).toBe(false);
+      expect(component.teacher).toBe(teacher);
+      httpSpy.mockClear();
+      httpFetchSpy.mockClear();
+    });*/
 });
 

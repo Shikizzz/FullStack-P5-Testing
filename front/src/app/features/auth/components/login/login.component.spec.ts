@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
 
-describe('LoginComponent', () => {
+describe('LoginComponent', () => { //Unit tests
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let router: Router;
@@ -69,7 +69,7 @@ describe('LoginComponent', () => {
     let loginRequest = { email: 'test@test.com', password: 'password' };
     component.form.setValue(loginRequest);
     const navigateSpy = jest.spyOn(router, 'navigate').mockImplementation(jest.fn());
-    mockAuthService.login.mockReturnValue(of(mockSessionInformation));// = jest.fn(() => of(mockSessionInformation)); // returns an observable of SessionInformation
+    mockAuthService.login.mockReturnValue(of(mockSessionInformation));// returns an observable of SessionInformation
 
     component.submit();
 
@@ -84,7 +84,7 @@ describe('LoginComponent', () => {
 
   it("should throw error if unvalid informations are submitted", () => {
     let loginRequest = { email: 'test@test.com', password: 'password' };
-    mockAuthService.login.mockReturnValue(throwError(() => new Error));// = jest.fn(() => throwError(() => new Error));   //WHY NOT INDEPENDANT WITH OTHER TEST ?
+    mockAuthService.login.mockReturnValue(throwError(() => new Error));
     const navigateSpy = jest.spyOn(router, 'navigate')
     component.form.setValue(loginRequest);
 
@@ -97,6 +97,80 @@ describe('LoginComponent', () => {
 
     mockSessionService.logIn.mockClear();
     mockAuthService.login.mockRestore();
+    navigateSpy.mockClear();
+  });
+});
+
+/*--------------- INTEGRATION TESTS ------------------*/
+
+describe('LoginComponentIntegration', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+
+  let loginRequest = { email: 'test@test.com', password: 'password' };
+
+  const mockSessionInformation: SessionInformation = {
+    token: 'token',
+    type: 'jwt',
+    id: 1,
+    username: 'JohnDoe',
+    firstName: 'John',
+    lastName: 'Doe',
+    admin: false
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [LoginComponent],
+      providers:
+        [SessionService],
+      imports: [
+        RouterTestingModule,
+        BrowserAnimationsModule,
+        HttpClientModule,
+        MatCardModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule]
+    })
+      .compileComponents();
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it("should login when valid informations are submitted", () => {
+    component.form.setValue(loginRequest);
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of(mockSessionInformation)); //mocking call to back
+    const logInSpy = jest.spyOn(SessionService.prototype as any, 'logIn')
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation();
+
+    component.submit();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/auth/login", loginRequest);
+    expect(logInSpy).toHaveBeenCalledWith(mockSessionInformation);
+    expect(navigateSpy).toHaveBeenCalledWith(['/sessions']);
+    expect(component.onError).toBe(false);
+    logInSpy.mockClear();
+    httpSpy.mockRestore();
+    navigateSpy.mockClear();
+  });
+
+  it("should not login when wrong credentials submitted", () => {
+    component.form.setValue(loginRequest);
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(throwError(() => new Error));
+    const logInSpy = jest.spyOn(SessionService.prototype as any, 'logIn')
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate')
+
+    component.submit();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/auth/login", loginRequest);
+    expect(logInSpy).not.toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(component.onError).toBe(true);
+    logInSpy.mockClear();
+    httpSpy.mockRestore();
     navigateSpy.mockClear();
   });
 
