@@ -21,7 +21,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Teacher</mat-label>
-          <mat-select ngDefaultControl formControlName="teacher_id">
+          <mat-select data-cy="teacher" ngDefaultControl formControlName="teacher_id">
             <mat-option *ngFor="let teacher of teachers$ | async" [value]="teacher.id">
               {{teacher.firstName}} {{teacher.lastName}}
             </mat-option>
@@ -29,10 +29,10 @@
         </mat-form-field>
         <mat-form-field appearance="outline" fxFlex>
           <mat-label>Description</mat-label>
-          <textarea matInput rows="8" formControlName="description"></textarea>
+          <textarea data-cy="description" matInput rows="8" formControlName="description"></textarea>
         </mat-form-field>
         <div fxLayout="row" fxLayoutAlign="center center">
-          <button mat-raised-button color="primary" type="submit" [disabled]="sessionForm.invalid">
+          <button data-cy="save" mat-raised-button color="primary" type="submit" [disabled]="sessionForm.invalid">
             Save
           </button>
         </div>
