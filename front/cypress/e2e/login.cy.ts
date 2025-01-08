@@ -13,12 +13,7 @@ describe('Login spec', () => {
                 admin: true
             },
         })
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('session')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
@@ -51,12 +46,7 @@ describe('Login spec', () => {
             },
         })
 
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('session')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yogastudio")
         cy.get('input[formControlName=password]').type(`${"password"}`)
@@ -76,12 +66,7 @@ describe('Login spec', () => {
             },
         })
 
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('session')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('[data-cy="submit"]').should('be.disabled')
@@ -99,12 +84,7 @@ describe('Login spec', () => {
                 admin: true
             },
         })
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('session')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)

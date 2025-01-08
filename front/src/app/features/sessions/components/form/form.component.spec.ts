@@ -28,8 +28,19 @@ describe('FormComponent', () => {
   let sessionService: SessionService;
   let router: Router;
 
+  const teacher = {
+    id: 1,
+    lastName: "Doe",
+    firstName: "John",
+    createdAt: new Date,
+    updatedAt: new Date,
+  } as Teacher
+
+  let teachers: Teacher[] = [];
+  teachers.push(teacher)
+
   const mockTeacherService = {
-    all: jest.fn().mockReturnValue(of([] as Teacher[]))
+    all: jest.fn().mockReturnValue(of(teachers))
   };
 
   let sessionInformation = {
@@ -151,9 +162,11 @@ describe('FormComponent', () => {
     const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of(formTest as Session)); //mocking call to back
     const matSnackBarSpy = jest.spyOn(MatSnackBar.prototype as any, 'open').mockImplementation(jest.fn());
     const navigateSpy = jest.spyOn(router, 'navigate').mockImplementation(jest.fn());
+    //const createSpy = jest.spyOn(SessionApiService.prototype as any, 'create');
 
     component.submit();
 
+    //expect(createSpy).toHaveBeenCalled();
     expect(httpSpy).toHaveBeenCalledWith("api/session", formTest as Session);
     expect(matSnackBarSpy).toHaveBeenCalledWith('Session created !', 'Close', { duration: 3000 });
     expect(navigateSpy).toHaveBeenCalledWith(['sessions']);

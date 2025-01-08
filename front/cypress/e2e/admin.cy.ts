@@ -5,52 +5,51 @@ import { Session } from "./model"
 // @ts-check
 describe('Session administration spec', () => {
 
+    let sessions: Session[] = [{
+        "id": 1,
+        "name": "TestSession",
+        "date": new Date(1999, 12, 31),
+        "teacher_id": 1,
+        "description": "TestDescription",
+        "users": [],
+        "createdAt": new Date(),
+        "updatedAt": new Date()
+    }];
+
+    let user = {
+        id: 1,
+        username: 'userName',
+        firstName: 'firstName',
+        lastName: 'lastName',
+        admin: true
+    }
+
+    let teachers = [{
+        id: 1,
+        lastName: "Johnny",
+        firstName: "Doe",
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }]
+
     it('Creates session', () => {
         cy.visit('/login')
 
-        cy.intercept('POST', '/api/auth/login', {
-            body: {
-                id: 1,
-                username: 'userName',
-                firstName: 'firstName',
-                lastName: 'lastName',
-                admin: true
-            },
-        })
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('session')
+        cy.intercept('/api/auth/login', user)
+
+        cy.intercept('/api/session', sessions) //future calls
+        cy.intercept('/api/session', { times: 1 }, {}) // POST CALL
+        cy.intercept('/api/session', { times: 1 }, []) //first GET call
 
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
         cy.url().should('include', '/sessions')
 
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/teacher',
-            },
-            [{
-                id: 1,
-                lastName: "Johnny",
-                firstName: "Doe",
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }]).as('teachers')
+        cy.intercept('/api/teacher', teachers)
 
         cy.get('[data-cy="create"]').click()
         cy.url().should('include', '/sessions/create')
-
-        cy.intercept(
-            {
-                method: 'POST',
-                url: '/api/session',
-            },
-            {})
 
         cy.get('input[formControlName=name]').type("TestSession")
         cy.get('input[formControlName=date]').type("1999-12-31")
@@ -60,62 +59,40 @@ describe('Session administration spec', () => {
 
         cy.url().should('include', '/sessions')
         cy.contains("Session created !")
+        cy.contains("TestSession") //session displayed to User
     })
 
     it('Edits session', () => {
         cy.visit('/login')
 
-        cy.intercept('POST', '/api/auth/login', {
-            body: {
-                id: 1,
-                username: 'userName',
-                firstName: 'John',
-                lastName: 'Doe',
-                admin: true
-            },
-        })
+        cy.intercept('/api/auth/login', user)
 
-        let sessionsArray: Session[] = [{
+        let editedSessionsArray: Session[] = [{
             "id": 1,
-            "name": "TestSession",
+            "name": "TestSessionUpdated",
             "date": new Date(),
             "teacher_id": 1,
-            "description": "TestDescription",
+            "description": "TestDescriptionUpdated",
             "users": [
             ],
             "createdAt": new Date(),
             "updatedAt": new Date()
         }];
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            sessionsArray).as('sessions')
+        cy.intercept('/api/session', editedSessionsArray) //future calls
+        cy.intercept('/api/session', { times: 1 }, sessions) //first GET call
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
         cy.url().should('include', '/sessions')
 
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/teacher',
-            },
-            [{
-                id: 1,
-                lastName: "Johnny",
-                firstName: "Doe",
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }]).as('teachers')
+        cy.intercept('/api/teacher', teachers)
 
         cy.intercept(
             {
                 method: 'GET',
                 url: '/api/session/1',
             },
-            sessionsArray[0])
+            sessions[0])
 
         cy.get('[data-cy="edit"]').click()
         cy.url().should('include', '/sessions/update')
@@ -136,62 +113,30 @@ describe('Session administration spec', () => {
 
         cy.url().should('include', '/sessions')
         cy.contains("Session updated !")
+        cy.contains("TestSessionUpdated")
     })
 
 
     it('Deletes session', () => {
         cy.visit('/login')
 
-        cy.intercept('POST', '/api/auth/login', {
-            body: {
-                id: 1,
-                username: 'userName',
-                firstName: 'John',
-                lastName: 'Doe',
-                admin: true
-            },
-        })
-        let sessionsArray: Session[] = [{
-            "id": 1,
-            "name": "TestSession",
-            "date": new Date(),
-            "teacher_id": 1,
-            "description": "TestDescription",
-            "users": [
-            ],
-            "createdAt": new Date(),
-            "updatedAt": new Date()
-        }];
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            sessionsArray).as('sessions')
+        cy.intercept('/api/auth/login', user)
+
+        cy.intercept('/api/session', []) //future calls
+        cy.intercept('/api/session', { times: 1 }, sessions) //first GET call
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
         cy.url().should('include', '/sessions')
 
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/teacher/1',
-            },
-            {
-                id: 1,
-                lastName: "Johnny",
-                firstName: "Doe",
-                createdAt: new Date(),
-                updatedAt: new Date()
-            })
+        cy.intercept('/api/teacher', teachers)
 
         cy.intercept(
             {
                 method: 'GET',
                 url: '/api/session/1',
             },
-            sessionsArray[0])
+            sessions[0])
 
         cy.intercept(
             {
@@ -204,5 +149,6 @@ describe('Session administration spec', () => {
         cy.get('[data-cy="delete"]').click()
         cy.url().should('include', '/sessions')
         cy.contains("Session deleted !")
+        cy.contains('TestSession').should('not.exist') //deleted
     })
 })

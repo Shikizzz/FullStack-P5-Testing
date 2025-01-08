@@ -1,5 +1,6 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterTestingModule, } from '@angular/router/testing';
@@ -85,7 +86,7 @@ describe('DetailComponent', () => {
     component.ngOnInit();
 
     expect(fetchSpy).toHaveBeenCalled();
-    fetchSpy.mockClear();
+    fetchSpy.mockRestore();
   });
 
   it('should call window.history.back() function when back() function is called', () => {
@@ -102,6 +103,7 @@ describe('DetailComponent', () => {
 
     expect(mockMatSnackBar.open).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['sessions']);
+    navigateSpy.mockClear();
   });
 
   it('should call sessionApiService.participate when participate button clicked', () => {
@@ -110,16 +112,20 @@ describe('DetailComponent', () => {
   });
 });
 
+
 /*--------------- INTEGRATION TESTS ------------------*/
+
 
 describe('DetailComponentIntegration', () => {
   let component: DetailComponent;
-  let sessionService: SessionService;
   let fixture: ComponentFixture<DetailComponent>;
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
+  let sessionService: SessionService;
 
   let sessionInformation = {
     admin: true,
-    id: 1
+    id: 42
   } as SessionInformation;
 
   let session = {
@@ -146,39 +152,55 @@ describe('DetailComponentIntegration', () => {
     session.users = [];
 
     await TestBed.configureTestingModule({
-      declarations: [DetailComponent],
+      declarations: [
+        DetailComponent],
       imports: [
         RouterTestingModule,
         HttpClientModule,
         MatSnackBarModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        HttpClientTestingModule
       ],
-      providers: [{ provide: SessionService }]
+      providers: [
+        { provide: SessionService },
+        { provide: SessionApiService }
+      ]
     })
       .compileComponents();
+    httpClient = TestBed.inject(HttpClient);
+    httpTestingController = TestBed.inject(HttpTestingController);
     sessionService = TestBed.inject(SessionService);
     sessionService.sessionInformation = sessionInformation;
+    sessionService.isLogged = true;
     fixture = TestBed.createComponent(DetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
-  /*
-    it('should fetch session on init', () => {
-      //sessionService.isLogged = true; //not the problem ?
-      component.sessionId = "1";
-      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'get')
-        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
-        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
-  
-      component.ngOnInit();
-  
-      expect(httpSpy).toHaveBeenCalled();//With("api/session/1");
-      expect(component.session).toBe(session);
-      expect(component.isParticipate).toBe(false);
-      expect(httpSpy).toHaveBeenCalledWith("api/teacher/1");
-      expect(component.teacher).toBe(teacher);
-      httpSpy.mockClear();
-    });*/
+
+  it('should fetch session on init', () => {
+    component.sessionId = "1";
+
+    //const fetchSessionSpy = jest.spyOn(DetailComponent.prototype as any, 'fetchSession')
+    const detailSpy = jest.spyOn(SessionApiService.prototype as any, 'detail')
+    expect(component.sessionId).toBe("1")
+    component.ngOnInit();
+
+    //expect(fetchSessionSpy).toHaveBeenCalled();
+    expect(detailSpy).toHaveBeenCalled();
+    expect(sessionService.isLogged).toBe(true)
+    expect(component.sessionId).toBe("1")
+    const req1 = httpTestingController.expectOne('api/session/1');
+    expect(req1.request.method).toEqual('GET');
+    req1.flush(session);
+    expect(component.session).toBe(session);
+    expect(component.isParticipate).toBe(false);
+
+    const req2 = httpTestingController.expectOne('api/teacher/1');
+    expect(req2.request.method).toEqual('GET');
+    req2.flush(teacher);
+    expect(component.teacher).toBe(teacher);
+    //httpTestingController.verify();
+  });
 
   it('should delete the session when delete() function called', () => {
     component.sessionId = "1";
@@ -195,47 +217,56 @@ describe('DetailComponentIntegration', () => {
     matSnackBarSpy.mockClear();
     navigateSpy.mockClear();
   });
-  /*
-    it('should add the user in the session when participate() function called', () => {
-      component.sessionId = "1";
-      component.userId = "42"
-      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of({})); //mocking sessionApiService.participate call to back
-      session.users.push(42); //user have been added to the session's users
-      const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
-        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
-        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
-  
-      component.participate();
-  
-      expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42", null);
-      // fetchSession is called Successfully here
-      expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
-      expect(component.isParticipate).toBe(true);
-      expect(component.teacher).toBe(teacher);
-      httpSpy.mockClear();
-      httpFetchSpy.mockClear();
-    });*/
-  /*
-    it('should add the user in the session when participate() function called', () => {
-      component.sessionId = "1";
-      component.userId = "42"
-      component.session?.users.push(42);
-      session.users.push(42);
-      component.isParticipate = true;
-      const httpSpy = jest.spyOn(HttpClient.prototype as any, 'delete').mockReturnValue(of({})); //mocking sessionApiService.unParticipate call to back
-      session.users.pop(); //user have been removed to the session's users
-      const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
-        .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
-        .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
-  
-      component.unParticipate();
-  
-      expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42");
-      expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
-      expect(component.isParticipate).toBe(false);
-      expect(component.teacher).toBe(teacher);
-      httpSpy.mockClear();
-      httpFetchSpy.mockClear();
-    });*/
+
+  it('should add the user in the session when participate() function called', () => {
+    component.sessionId = "1";
+    component.userId = "42"
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of({})); //mocking sessionApiService.participate call to back
+    let updatedSession = {
+      id: 1,
+      name: "YogaSession",
+      description: "description",
+      date: new Date,
+      teacher_id: 1,
+      users: [42],
+      createdAt: new Date,
+      updatedAt: new Date
+    } as Session;
+    const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
+      .mockReturnValueOnce(of(updatedSession)) //mocking sessionApiService.detail call to back
+      .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
+
+    component.participate();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42", null);
+    // fetchSession is called Successfully here
+    expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
+    expect(component.isParticipate).toBe(true);
+    expect(component.teacher).toBe(teacher);
+    httpSpy.mockClear();
+    httpFetchSpy.mockClear();
+  });
+
+  it('should remove the user in the session when unParticipate() function called', () => {
+    component.sessionId = "1";
+    component.userId = "42"
+    component.session?.users.push(42);
+    session.users.push(42);
+    component.isParticipate = true;
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'delete').mockReturnValue(of({})); //mocking sessionApiService.unParticipate call to back
+    session.users.pop(); //user have been removed to the session's users
+    const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
+      .mockReturnValueOnce(of(session)) //mocking sessionApiService.detail call to back
+      .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
+
+    component.unParticipate();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42");
+    expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
+    expect(component.isParticipate).toBe(false);
+    expect(component.teacher).toBe(teacher);
+    httpSpy.mockClear();
+    httpFetchSpy.mockClear();
+  });
 });
 

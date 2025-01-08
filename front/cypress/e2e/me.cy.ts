@@ -15,12 +15,7 @@ describe('Me spec', () => {
                 admin: false
             },
         });
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('sessions')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"wrongpassword"}{enter}{enter}`)
@@ -54,12 +49,7 @@ describe('Me spec', () => {
                 admin: false
             },
         });
-        cy.intercept(
-            {
-                method: 'GET',
-                url: '/api/session',
-            },
-            []).as('sessions')
+        cy.intercept('/api/session', [])
 
         cy.get('input[formControlName=email]').type("yoga@studio.com")
         cy.get('input[formControlName=password]').type(`${"wrongpassword"}{enter}{enter}`)
