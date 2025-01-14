@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,7 +34,4 @@ describe('ListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call the http request is the service whenuser() called', () => {
-    expect(component).toBeTruthy();
-  });
 });

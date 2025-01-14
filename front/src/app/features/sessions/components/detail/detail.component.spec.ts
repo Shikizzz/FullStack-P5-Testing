@@ -21,7 +21,6 @@ import { Teacher } from 'src/app/interfaces/teacher.interface';
 describe('DetailComponent', () => {
   let component: DetailComponent;
   let fixture: ComponentFixture<DetailComponent>;
-  let service: SessionService;
   let router: Router;
 
   const mockSessionService = {
@@ -70,7 +69,6 @@ describe('DetailComponent', () => {
     })
       .compileComponents();
     router = TestBed.inject(Router);
-    service = TestBed.inject(SessionService);
     fixture = TestBed.createComponent(DetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -180,12 +178,10 @@ describe('DetailComponentIntegration', () => {
   it('should fetch session on init', () => {
     component.sessionId = "1";
 
-    //const fetchSessionSpy = jest.spyOn(DetailComponent.prototype as any, 'fetchSession')
     const detailSpy = jest.spyOn(SessionApiService.prototype as any, 'detail')
     expect(component.sessionId).toBe("1")
     component.ngOnInit();
 
-    //expect(fetchSessionSpy).toHaveBeenCalled();
     expect(detailSpy).toHaveBeenCalled();
     expect(sessionService.isLogged).toBe(true)
     expect(component.sessionId).toBe("1")
@@ -199,7 +195,6 @@ describe('DetailComponentIntegration', () => {
     expect(req2.request.method).toEqual('GET');
     req2.flush(teacher);
     expect(component.teacher).toBe(teacher);
-    //httpTestingController.verify();
   });
 
   it('should delete the session when delete() function called', () => {
@@ -222,6 +217,7 @@ describe('DetailComponentIntegration', () => {
     component.sessionId = "1";
     component.userId = "42"
     const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of({})); //mocking sessionApiService.participate call to back
+
     let updatedSession = {
       id: 1,
       name: "YogaSession",
@@ -232,6 +228,7 @@ describe('DetailComponentIntegration', () => {
       createdAt: new Date,
       updatedAt: new Date
     } as Session;
+
     const httpFetchSpy = jest.spyOn(HttpClient.prototype as any, 'get')
       .mockReturnValueOnce(of(updatedSession)) //mocking sessionApiService.detail call to back
       .mockReturnValueOnce(of(teacher)); //mocking teacherService.detail call to back
@@ -239,7 +236,6 @@ describe('DetailComponentIntegration', () => {
     component.participate();
 
     expect(httpSpy).toHaveBeenCalledWith("api/session/1/participate/42", null);
-    // fetchSession is called Successfully here
     expect(httpFetchSpy).toHaveBeenCalledWith("api/session/1");
     expect(component.isParticipate).toBe(true);
     expect(component.teacher).toBe(teacher);
@@ -268,5 +264,6 @@ describe('DetailComponentIntegration', () => {
     httpSpy.mockClear();
     httpFetchSpy.mockClear();
   });
+
 });
 

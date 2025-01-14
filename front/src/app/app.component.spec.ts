@@ -80,7 +80,6 @@ describe('AppComponentIntegration', () => {
   });
 
   it('should create the app, with unlogged user', () => {
-    //sessionService.isLogged = false;
     const $isLogged: Observable<boolean> = app.$isLogged();
     let isLogged!: boolean;
     $isLogged.subscribe(bool => isLogged = bool);

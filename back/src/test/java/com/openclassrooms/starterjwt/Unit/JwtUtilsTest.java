@@ -1,24 +1,24 @@
 package com.openclassrooms.starterjwt.Unit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.payload.request.LoginRequest;
 import com.openclassrooms.starterjwt.payload.response.JwtResponse;
 import com.openclassrooms.starterjwt.security.jwt.JwtUtils;
-import com.openclassrooms.starterjwt.services.SessionService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -26,15 +26,36 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest
 @AutoConfigureMockMvc
 public class JwtUtilsTest {
-    private static JwtUtils jwtUtils;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mvc;
-    String token;
 
-    @BeforeEach
-    private void setUpperTest() throws Exception {
-        jwtUtils = new JwtUtils();
+    @Test
+    public void generateTokenTest(){
+        UserDetails principal = userDetailsService.loadUserByUsername("yoga@studio.com");
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities());
+        String newToken = jwtUtils.generateJwtToken(authentication);
 
+        assertTrue(jwtUtils.validateJwtToken(newToken));
+    }
+    @Test
+    public void getUserNameFromJwtTokenTest(){
+        //Generating token
+        UserDetails principal = userDetailsService.loadUserByUsername("yoga@studio.com");
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities());
+        String newToken = jwtUtils.generateJwtToken(authentication);
+
+        String userName = jwtUtils.getUserNameFromJwtToken(newToken);
+
+        assertEquals("yoga@studio.com", userName);
+    }
+
+
+    @Test
+    public void validTokenTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writer().withDefaultPrettyPrinter();
         LoginRequest loginRequest = new LoginRequest();
@@ -47,20 +68,14 @@ public class JwtUtilsTest {
         String json = result.getResponse().getContentAsString();
         ObjectMapper objectMapper = new ObjectMapper();
         JwtResponse response = objectMapper.readValue(json, JwtResponse.class);
-        token = "Bearer " + response.getToken();
-    }
-/*
-    @Test
-    @WithMockUser("Test")
-    public void generateJwtTokenTest(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String response = jwtUtils.generateJwtToken(authentication);
-        assertTrue(response.length()>10); //token is a long string
-    }*/
+        String token = response.getToken();
 
-    @Test
-    public void validateTokenTest(){
         Boolean validated = jwtUtils.validateJwtToken(token);
         assertTrue(validated);
+    }
+    @Test
+    public void unvalidTokenTest(){
+        Boolean validated = jwtUtils.validateJwtToken("unvalidToken");
+        assertFalse(validated);
     }
 }

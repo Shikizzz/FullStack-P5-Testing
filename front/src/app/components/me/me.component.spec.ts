@@ -88,7 +88,7 @@ describe('MeComponent', () => {
     const backSpy = jest.spyOn(window.history, 'back');
     component.back();
     expect(backSpy).toHaveBeenCalled();
-    backSpy.mockClear(); //Not needed, but good practice
+    backSpy.mockClear();
   });
 
   it('should call userService.delete(), MatSnackBar.open(), SessionService.logout() and Router.navigate() when delete() called', () => {

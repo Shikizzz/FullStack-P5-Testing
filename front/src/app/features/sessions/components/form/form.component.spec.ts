@@ -1,6 +1,6 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -162,11 +162,9 @@ describe('FormComponent', () => {
     const httpSpy = jest.spyOn(HttpClient.prototype as any, 'post').mockReturnValue(of(formTest as Session)); //mocking call to back
     const matSnackBarSpy = jest.spyOn(MatSnackBar.prototype as any, 'open').mockImplementation(jest.fn());
     const navigateSpy = jest.spyOn(router, 'navigate').mockImplementation(jest.fn());
-    //const createSpy = jest.spyOn(SessionApiService.prototype as any, 'create');
 
     component.submit();
 
-    //expect(createSpy).toHaveBeenCalled();
     expect(httpSpy).toHaveBeenCalledWith("api/session", formTest as Session);
     expect(matSnackBarSpy).toHaveBeenCalledWith('Session created !', 'Close', { duration: 3000 });
     expect(navigateSpy).toHaveBeenCalledWith(['sessions']);

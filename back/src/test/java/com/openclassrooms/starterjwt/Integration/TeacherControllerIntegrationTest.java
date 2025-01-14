@@ -1,10 +1,7 @@
 package com.openclassrooms.starterjwt.Integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.openclassrooms.starterjwt.dto.TeacherDto;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TeacherControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext applicationContext;
     @Autowired
     private MockMvc mvc;
     private ObjectMapper mapper = new ObjectMapper();
