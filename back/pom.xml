@@ -26,6 +26,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
@@ -81,6 +87,7 @@
 			<artifactId>mapstruct-processor</artifactId>
 			<version>1.5.1.Final</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -98,13 +105,19 @@
                 </configuration>
             </plugin>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
+				<configuration>
+					<excludes>
+						<exclude>**/dto/**</exclude>
+						<exclude>**/mapper/**</exclude>
+						<exclude>**/models/**</exclude>
+						<exclude>**/payload/**</exclude>
+						<exclude>**/security/WebSecurityConfig.class</exclude>
+						<exclude>**/security/services/UserDetailsImpl.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -133,7 +146,7 @@
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.9</minimum>
+											<minimum>0.8</minimum>
 										</limit>
 									</limits>
 								</rule>

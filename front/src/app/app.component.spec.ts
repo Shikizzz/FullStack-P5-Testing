@@ -6,7 +6,7 @@ import { expect } from '@jest/globals';
 
 import { AppComponent } from './app.component';
 import { SessionService } from './services/session.service';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 
 
@@ -52,4 +52,48 @@ describe('AppComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['']);
   });
 
+});
+
+/*--------------- INTEGRATION TESTS ------------------*/
+
+describe('AppComponentIntegration', () => {
+  let app: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let sessionService: SessionService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        RouterTestingModule,
+        HttpClientModule,
+        MatToolbarModule
+      ],
+      declarations: [
+        AppComponent
+      ],
+    })
+      .compileComponents()
+    sessionService = TestBed.inject(SessionService);
+    fixture = TestBed.createComponent(AppComponent);
+    app = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create the app, with unlogged user', () => {
+    const $isLogged: Observable<boolean> = app.$isLogged();
+    let isLogged!: boolean;
+    $isLogged.subscribe(bool => isLogged = bool);
+
+    expect(isLogged).toBe(false);
+  });
+
+  it('should logout when logout buttonn is clicked', () => {
+    sessionService.isLogged = true;
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation(jest.fn());
+
+    app.logout();
+
+    expect(sessionService.isLogged = false);
+    expect(navigateSpy).toHaveBeenCalledWith(['']);
+  });
 });

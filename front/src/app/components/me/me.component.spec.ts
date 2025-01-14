@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +12,7 @@ import { MeComponent } from './me.component';
 import { User } from 'src/app/interfaces/user.interface';
 import { UserService } from 'src/app/services/user.service';
 import { Router } from '@angular/router';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
 
 describe('MeComponent', () => {
   let component: MeComponent;
@@ -87,7 +88,7 @@ describe('MeComponent', () => {
     const backSpy = jest.spyOn(window.history, 'back');
     component.back();
     expect(backSpy).toHaveBeenCalled();
-    backSpy.mockClear(); //Not needed, but good practice
+    backSpy.mockClear();
   });
 
   it('should call userService.delete(), MatSnackBar.open(), SessionService.logout() and Router.navigate() when delete() called', () => {
@@ -97,5 +98,76 @@ describe('MeComponent', () => {
     expect(mockSessionService.logOut).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
   });
+});
 
+/*--------------- INTEGRATION TESTS ------------------*/
+
+describe('MeComponentIntegration', () => {
+  let component: MeComponent;
+  let sessionService: SessionService;
+  let fixture: ComponentFixture<MeComponent>;
+
+  let mockUser: User = {
+    id: 1,
+    email: 'test@test.com',
+    lastName: 'Doe',
+    firstName: 'John',
+    admin: true,
+    password: 'testpassword',
+    createdAt: new Date()
+  } as User
+
+  const sessionInformation = {
+    admin: true,
+    id: 1,
+  } as SessionInformation;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [MeComponent],
+      imports: [
+        MatSnackBarModule,
+        HttpClientModule,
+        MatCardModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule
+      ],
+      providers: [{ provide: SessionService }],
+    })
+      .compileComponents();
+    sessionService = TestBed.inject(SessionService);
+    sessionService.sessionInformation = sessionInformation;
+    fixture = TestBed.createComponent(MeComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should init', () => {
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'get').mockReturnValue(of(mockUser)); //mocking call to back
+
+    component.ngOnInit();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/user/1");
+    expect(component.user).toEqual(mockUser);
+    httpSpy.mockClear();
+  });
+
+  it('should delete', () => {
+    const httpSpy = jest.spyOn(HttpClient.prototype as any, 'delete').mockReturnValue(of({})); //mocking call to back
+    const matSnackBarSpy = jest.spyOn(MatSnackBar.prototype as any, 'open').mockImplementation(jest.fn());
+    const sessionServiceSpy = jest.spyOn(SessionService.prototype as any, 'logOut');
+    const navigateSpy = jest.spyOn(Router.prototype as any, 'navigate').mockImplementation(jest.fn());
+
+    component.delete();
+
+    expect(httpSpy).toHaveBeenCalledWith("api/user/1");
+    expect(matSnackBarSpy).toHaveBeenCalled();
+    expect(sessionServiceSpy).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+    httpSpy.mockClear();
+    matSnackBarSpy.mockClear();
+    sessionServiceSpy.mockClear();
+    navigateSpy.mockClear();
+  });
 });

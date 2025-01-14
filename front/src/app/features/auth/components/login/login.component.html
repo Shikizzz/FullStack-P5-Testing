@@ -17,7 +17,7 @@
                     </button>
                 </mat-form-field>
             </mat-card-content>
-            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Submit</button>
+            <button data-cy="submit" mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Submit</button>
             <p *ngIf="onError" class="error">An error occurred</p>
         </form>
     </mat-card>

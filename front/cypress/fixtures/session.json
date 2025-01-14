@@ -1,0 +1,13 @@
+
+    {
+        "id": 1,
+        "name": "TestSession",
+        "date": "2024-12-12T00:00:00.000+00:00",
+        "teacher_id": 1,
+        "description": "TestDescription",
+        "users": [
+            1
+        ],
+        "createdAt": "2024-12-11T18:00:14",
+        "updatedAt": "2024-12-11T18:00:14"
+    }
