@@ -13,8 +13,8 @@ Git clone :
 
 Then to run the front, go to {path to the root}/front and run :
 
-> npm install
-> npm run start
+> npm install 
+> npm run start 
 
 2) BACK
 
@@ -25,9 +25,9 @@ Open a terminal, and use this command :
 
 > mysql -u {yourUsername} -p
 Then you have to enter your password, and should be successfully connected tu MySQL DB.
-> CREATE DATABASE test;
-> USE test;
-> SOURCE /path/to/project/resources/sql/file.sql
+> CREATE DATABASE test; 
+> USE test; 
+> SOURCE /path/to/project/resources/sql/file.sql 
 
 Now, Database is successfully imported.
 In the backend's application.properties, you have to add the property spring.datasource.password={yourPassword} (or add this variable in your environment variables)
@@ -42,7 +42,7 @@ Then to run the back, go to {path to the root}/back and run :
 Run both Front and Back, and in your Browser, go to http://localhost:4200/
 
 You can login as admin with these credentials :
-> login: yoga@studio.com, 
+> login: yoga@studio.com
 > password: test!1234 ;
 
 You can also register to create a User account.
